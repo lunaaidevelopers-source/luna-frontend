@@ -1,13 +1,16 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import "tailwindcss";
+
+/* As tuas cores custom do Figma (opcional, mas recomendado) */
+@theme {
+  --color-luna-bg: #09090B;
+  --color-luna-primary: #BA21F9;
+  --color-luna-text: #FFFFFF;
+  --color-luna-secondary: #71717A;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Fundo escuro global (opcional) */
+@layer base {
+  body {
+    @apply bg-luna-bg text-luna-text;
+  }
 }
