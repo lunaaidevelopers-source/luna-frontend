@@ -32,6 +32,55 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <!-- Inline fix: remove deprecated Luna Plus features inserted by older bundles -->
+    <script>
+      (function(){
+        const targets = ['Voice Replies', 'Images & Media', 'Images & Media Sharing', 'Voice Replies & Calls'];
+        function removeMatches(){
+          try{
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, null, false);
+            let node;
+            const removed = [];
+            while(node = walker.nextNode()){
+              if(!node || !node.textContent) continue;
+              const text = node.textContent.trim();
+              for(const t of targets){
+                if(text.includes(t)){
+                  const el = node.closest('div') || node;
+                  if(el && el.parentNode && !removed.includes(el)){
+                    el.parentNode.removeChild(el);
+                    removed.push(el);
+                  }
+                  break;
+                }
+              }
+            }
+          }catch(e){/* ignore */}
+        }
+
+        const observer = new MutationObserver(()=>{
+          removeMatches();
+        });
+
+        if(document.readyState === 'loading'){
+          document.addEventListener('DOMContentLoaded', ()=>{
+            observer.observe(document.body, { childList: true, subtree: true });
+            removeMatches();
+          });
+        } else {
+          observer.observe(document.body, { childList: true, subtree: true });
+          removeMatches();
+        }
+
+        // Extra safety: run a few times then stop
+        let runs = 0;
+        const iv = setInterval(()=>{
+          removeMatches();
+          runs += 1;
+          if(runs > 20){ clearInterval(iv); observer.disconnect(); }
+        }, 500);
+      })();
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
