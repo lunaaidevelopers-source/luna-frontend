@@ -144,7 +144,7 @@ export default function LunaPlus({ onBack, onSuccess, onSettings }) {
           Unlock the full<br/>Luna Experience
         </h1>
         <p style={{ color: '#71717A', fontSize: '1.1rem' }}>
-          Go Plus for exclusive features & endless conversations
+          Go Plus for premium personalities & unlimited chat
         </p>
       </div>
 
