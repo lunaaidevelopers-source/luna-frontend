@@ -22,3 +22,5 @@ Este é um resumo rápido. Ver o checklist completo em `Luna_Backend/PRODUCAO_CH
 - [ ] Verificar HTTPS está funcionando
 - [ ] Testar em diferentes navegadores
 
+
+
