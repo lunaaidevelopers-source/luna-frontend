@@ -139,6 +139,54 @@ v1Router.get('/payment/subscription-status', async (req, res) => {
   }
 });
 
+// Chat: Send Message
+v1Router.post('/chat', async (req, res) => {
+  try {
+    const { message, persona, userId } = req.body;
+    
+    // Placeholder response logic
+    // In a real app, you would call OpenAI or another AI service here
+    const reply = `I received your message: "${message}". I am ${persona || 'Luna'}. (Backend is working!)`;
+
+    // Save message to Firestore history (optional)
+    if (userId) {
+      await db.collection('chats').add({
+        userId,
+        persona: persona || 'Luna',
+        message,
+        reply,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    res.json({ reply });
+  } catch (error) {
+    console.error('Error in chat:', error);
+    res.status(500).json({ error: 'Chat processing failed' });
+  }
+});
+
+// Chat: Get History
+v1Router.get('/chat/history', async (req, res) => {
+  try {
+    const { userId, persona } = req.query;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+
+    const snapshot = await db.collection('chats')
+      .where('userId', '==', userId)
+      .where('persona', '==', persona || 'Luna')
+      .orderBy('createdAt', 'asc')
+      .limit(50)
+      .get();
+
+    const messages = snapshot.docs.map(doc => doc.data());
+    res.json({ messages });
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
 // Mount the router
 app.use('/v1', v1Router);
 
