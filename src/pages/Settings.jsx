@@ -225,7 +225,7 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
         {/* Luna Plus */}
         <div style={{ marginBottom: '32px' }}>
           <button 
-            onClick={() => onLunaPlus && onLunaPlus()}
+            onClick={() => !isPlus && onLunaPlus && onLunaPlus()}
             style={{
               width: '100%',
               padding: '20px',
@@ -237,7 +237,7 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
               color: 'white',
               fontSize: '18px',
               fontWeight: 'bold',
-              cursor: 'pointer',
+              cursor: isPlus ? 'default' : 'pointer',
               boxShadow: isPlus 
                 ? '0 4px 20px rgba(16, 185, 129, 0.3)'
                 : '0 4px 20px rgba(168, 85, 247, 0.3)',
@@ -247,8 +247,8 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
               justifyContent: 'center',
               gap: '10px'
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseOver={(e) => !isPlus && (e.currentTarget.style.transform = 'scale(1.02)')}
+            onMouseOut={(e) => !isPlus && (e.currentTarget.style.transform = 'scale(1)')}
           >
             {isPlus ? (
               <>Luna Plus Active</>
