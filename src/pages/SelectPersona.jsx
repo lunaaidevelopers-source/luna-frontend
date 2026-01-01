@@ -1,41 +1,12 @@
 import React from 'react';
+import { PERSONAS } from '../constants';
 
 export default function SelectPersona({ onSelect, onUpgrade, isPlus, onLogout, onSettings }) {
-  // Lista de Personas com lógica de bloqueio dinâmica
-  const personas = [
-    {
-      id: 'sweet',
-      name: 'Sweet & Caring',
-      vibe: 'Caring, warm and friendly',
-      image: '/luna_sweet.jpg',
-      color: '#B421F9',
-      locked: false // Sempre grátis
-    },
-    {
-      id: 'flirty',
-      name: 'Flirty',
-      vibe: 'Playful and charming',
-      image: '/luna_flirty.jpg',
-      color: '#F921B4',
-      locked: false // Sempre grátis
-    },
-    {
-      id: 'submissive',
-      name: 'Submissive',
-      vibe: 'Gentle and devoted',
-      image: '/luna_submissive.jpg',
-      color: '#B421F9',
-      locked: isPlus ? false : true // Desbloqueia se for Plus
-    },
-    {
-      id: 'seductive',
-      name: 'Seductive',
-      vibe: 'Confident and alluring',
-      image: '/luna_seductive.jpeg',
-      color: '#B421F9',
-      locked: isPlus ? false : true // Desbloqueia se for Plus
-    }
-  ];
+  // Processar personas para aplicar estado de bloqueio baseado no status Plus
+  const personas = PERSONAS.map(p => ({
+    ...p,
+    locked: (p.id === 'submissive' || p.id === 'seductive') ? !isPlus : false
+  }));
 
   return (
     <div style={{ 
