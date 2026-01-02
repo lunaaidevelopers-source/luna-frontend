@@ -187,7 +187,10 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
       setTimeout(() => setSuccessMsg(''), 3000);
       setShowDeleteConfirm(false);
     } catch (err) {
+      console.error(err);
       setErrorMsg('Failed to clear history. Please try again.');
+      // Show actual error for debugging
+      alert(`Error deleting history: ${err.message}`);
       setTimeout(() => setErrorMsg(''), 3000);
     } finally {
       setLoading(false);
