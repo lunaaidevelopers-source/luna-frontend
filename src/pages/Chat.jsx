@@ -253,7 +253,7 @@ export default function Chat({ selectedLuna, onBack, onLimitReached, onSettings 
       </div>
 
       {/* Mensagens */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#0A0A0A' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '100px 20px 20px 20px', display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#0A0A0A' }}>
         {loadingHistory && (
           <div style={{ color: '#71717A', textAlign: 'center', padding: '20px' }}>
             Loading chat history...
