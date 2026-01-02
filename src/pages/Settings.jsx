@@ -13,6 +13,9 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Report Issue State
   const [showReportModal, setShowReportModal] = useState(false);
@@ -168,6 +171,29 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
     }
   };
 
+  const handleClearHistory = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/v1/chat/history?userId=${user.uid}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete history');
+      
+      setSuccessMsg('Chat history cleared successfully!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      setErrorMsg('Failed to clear history. Please try again.');
+      setTimeout(() => setErrorMsg(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{
       backgroundColor: '#050505',
@@ -297,6 +323,98 @@ export default function Settings({ onBack, onLogout, onLunaPlus, isPlus }) {
             </button>
           )}
         </div>
+
+          <div style={{ fontSize: '13px', color: '#71717A', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Data & Privacy
+          </div>
+          <div style={{
+            backgroundColor: '#18181B',
+            padding: '16px 20px',
+            borderRadius: '14px',
+            border: '1px solid #27272A',
+            marginBottom: '32px'
+          }}>
+            {!showDeleteConfirm ? (
+              <button 
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  width: '100%',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #EF4444',
+                  color: '#EF4444',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+                Delete All Chat History
+              </button>
+            ) : (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#E4E4E7', marginBottom: '12px', fontSize: '0.9rem' }}>
+                  Are you sure? This cannot be undone.
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(false)}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#27272A',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleClearHistory}
+                    disabled={loading}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#EF4444',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: loading ? 'wait' : 'pointer',
+                      opacity: loading ? 0.7 : 1
+                    }}
+                  >
+                    {loading ? 'Deleting...' : 'Yes, Delete All'}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {successMsg && (
+              <div style={{ marginTop: '12px', color: '#4ADE80', fontSize: '0.9rem', textAlign: 'center' }}>
+                {successMsg}
+              </div>
+            )}
+            {errorMsg && (
+              <div style={{ marginTop: '12px', color: '#EF4444', fontSize: '0.9rem', textAlign: 'center' }}>
+                {errorMsg}
+              </div>
+            )}
+          </div>
 
         {/* Support */}
         <div style={{ marginBottom: '32px' }}>

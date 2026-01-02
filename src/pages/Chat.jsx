@@ -98,91 +98,158 @@ export default function Chat({ selectedLuna, onBack, onLimitReached, onSettings 
         if (response.status === 403 && errorData.limit_reached) {
           setMessages(prev => [...prev, { 
             sender: 'luna', 
-            text: errorData.message || "You've reached your daily limit!",
-            isLimitReached: true 
+            text: errorData.message || "You've reached your daily limit. Please upgrade to Luna Plus for unlimited messages!" 
           }]);
+          if (onLimitReached) onLimitReached();
           return;
         }
 
-        let errorMessage = "Something went wrong. Please try again.";
-        if (response.status === 429) {
-          errorMessage = errorData.error || "API quota exceeded. Please wait a few minutes. 💳";
-        }
-        
-        setMessages(prev => [...prev, { 
-          sender: 'luna', 
-          text: errorMessage,
-          isError: true 
-        }]);
-        return;
+        throw new Error('Failed to send message');
       }
 
       const data = await response.json();
-
-      if (data.reply) {
-        setMessages(prev => [...prev, { sender: 'luna', text: data.reply }]);
-      }
+      setMessages(prev => [...prev, { sender: 'luna', text: data.reply }]);
     } catch (error) {
+      logger.error('Error sending message:', error);
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         sender: 'luna', 
-        text: "Connection error. Please check your internet. 🔌",
-        isError: true 
+        text: "I'm having trouble connecting right now. Please check your internet or try again later. 🥺" 
       }]);
     }
   };
 
+  const handleClearChat = async () => {
+    if (!window.confirm('Are you sure you want to clear this conversation? This cannot be undone.')) return;
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    try {
+        const personaName = selectedLuna?.name || 'Luna';
+        const response = await fetch(`${API_URL}/api/v1/chat/history?userId=${user.uid}&persona=${encodeURIComponent(personaName)}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Failed to clear chat');
+        
+        // Reset local state
+        setMessages([{ sender: 'luna', text: `Hi there! I'm your ${personaName}. How can I make your day better? ✨` }]);
+        
+    } catch (error) {
+        logger.error('Error clearing chat:', error);
+        alert('Failed to clear chat history. Please try again.');
+    }
+  };
+
   return (
-    <div style={{ backgroundColor: '#050505', height: '100vh', display: 'flex', flexDirection: 'column', color: 'white', fontFamily: 'sans-serif' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100vh', 
+      backgroundColor: '#050505',
+      color: 'white',
+      fontFamily: "'Inter', sans-serif"
+    }}>
       {/* Header */}
-      <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          {onBack && (
+      <div style={{ 
+        padding: '16px', 
+        borderBottom: '1px solid #27272A', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(5, 5, 5, 0.95)',
+        backdropFilter: 'blur(10px)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            onClick={onBack}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#A1A1AA', 
+              fontSize: '24px', 
+              cursor: 'pointer',
+              padding: '4px'
+            }}
+          >
+            ←
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: '50%', 
+              overflow: 'hidden',
+              border: '2px solid #A855F7'
+            }}>
+              <img 
+                src={selectedLuna?.image} 
+                alt={selectedLuna?.name} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{selectedLuna?.name || 'Luna'}</h2>
+              <div style={{ fontSize: '12px', color: '#4ADE80', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#4ADE80', borderRadius: '50%' }}></span>
+                Online
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+            {/* Trash Button */}
+            <button
+                onClick={handleClearChat}
+                style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#71717A',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                    e.currentTarget.style.color = '#EF4444';
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                }}
+                onMouseOut={(e) => {
+                    e.currentTarget.style.color = '#71717A';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                title="Clear Conversation"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+
             <button 
-              onClick={onBack}
-              style={{ 
+                onClick={onSettings}
+                style={{ 
                 background: 'none', 
                 border: 'none', 
-                color: '#A855F7', 
-                fontSize: '1.5rem', 
+                color: '#A1A1AA', 
                 cursor: 'pointer',
-                padding: '5px 10px'
-              }}
+                padding: '8px'
+                }}
             >
-              ←
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+                </svg>
             </button>
-          )}
-          <h2 style={{ margin: 0 }}>Chat with {selectedLuna?.name || 'Luna'}</h2>
         </div>
-        <button 
-          onClick={onSettings}
-          style={{ 
-            background: 'transparent', 
-            border: '1px solid #27272A', 
-            color: '#A855F7', 
-            cursor: 'pointer',
-            padding: '10px',
-            borderRadius: '12px',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.1)';
-            e.currentTarget.style.borderColor = '#A855F7';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.borderColor = '#27272A';
-          }}
-          title="Settings"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
       </div>
 
       {/* Mensagens */}
